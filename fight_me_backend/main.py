@@ -40,6 +40,12 @@ async def getRoom(sid):
     await sio.emit("getRoomResponse", { "room": room })
     sio.enter_room(sid, room)
 
+@sio.event
+async def leaveRoom(sid, data):
+    print(f"Removing SID {sid} from room {data['room']}")
+    sio.leave_room(sid, room)
+    await sio.emit("leaveRoomResponse", { "room": data['room'] })
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5000)
