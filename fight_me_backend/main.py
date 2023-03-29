@@ -80,9 +80,13 @@ async def getRoom(sid):
 async def leaveRoom(sid, data):
     print(f"Removing SID {sid} from room {data['room']}")
     sio.leave_room(sid, data['room'])
-    
+
+    num_in_room = sum(1 for _, user_data in users.items() if user_data.get('room') is data['room'])
+    if num_in_room > 0:
+        unfilled_rooms.append(data['room'])
+
     users[sid]["room"] = None
-    await sio.emit("leaveRoomResponse", { "room": data['room'] })
+    await sio.emit("leaveRoomResponse", { "room": data['room'] }, to=sid)
 
 
 async def connected_users():
