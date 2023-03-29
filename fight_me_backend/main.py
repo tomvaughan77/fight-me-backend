@@ -2,13 +2,13 @@
 import uvicorn
 
 import socketio
-import json
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 app = socketio.ASGIApp(sio)
 
 
 users = []
+room = "test_room"
 
 
 @sio.on("connect")
@@ -21,6 +21,7 @@ def test_connect(sid, data):
 @sio.on("disconnect")
 async def test_disconnect(sid):
     print(f"🔥: {sid} user disconnected")
+    sio.leave_room(sid, room)
     users.remove(sid)   
     await sio.disconnect(sid)
     print(users)
@@ -32,6 +33,12 @@ async def message(sid, data):
     print(data)
     print(f"Message: {data['text']} from {data['name']}")
     await sio.emit("messageResponse", data)
+
+@sio.event
+async def getRoom(sid):
+    print(f"Adding SID {sid} to room {room}")
+    await sio.emit("getRoomResponse", { "room": room })
+    sio.enter_room(sid, room)
 
 
 if __name__ == "__main__":
