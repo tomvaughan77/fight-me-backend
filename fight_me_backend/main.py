@@ -9,6 +9,7 @@ app = socketio.ASGIApp(sio)
 
 users = []
 room = "test_room"
+messages = {}
 
 
 @sio.on("connect")
@@ -32,13 +33,30 @@ async def message(sid, data):
     print(f"SID: {sid}")
     print(data)
     print(f"Message: {data['text']} from {data['name']}")
+
+    if room in messages:
+        messages[room].append(data)
+    else:
+        messages[room] = [data]
+
+    print(messages)
+
     await sio.emit("messageResponse", data)
+
+@sio.event
+async def getMessages(sid, data):
+    print(f"SID {sid} catching up on messages for room {data['room']}")
+
+    print(f"Message history: {messages.get(data['room'])}")
+    await sio.emit("getMessagesResponse", messages.get(data['room']))
 
 @sio.event
 async def getRoom(sid):
     print(f"Adding SID {sid} to room {room}")
-    await sio.emit("getRoomResponse", { "room": room })
     sio.enter_room(sid, room)
+
+    await sio.emit("getRoomResponse", { "room": room })
+    
 
 @sio.event
 async def leaveRoom(sid, data):
