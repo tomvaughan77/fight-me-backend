@@ -82,6 +82,7 @@ async def leaveRoom(sid, data):
     sio.leave_room(sid, data['room'])
 
     num_in_room = sum(1 for _, user_data in users.items() if user_data.get('room') is data['room'])
+    print(f"Num left in room: {num_in_room}")
     if num_in_room > 0:
         unfilled_rooms.append(data['room'])
 
