@@ -2,16 +2,18 @@
 import uvicorn
 import socketio
 import asyncio
+import uuid
 
 from threading import Thread
+from collections import deque
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 app = socketio.ASGIApp(sio)
 
 
 users = {}
-room = "test_room"
 messages = {}
+unfilled_rooms = deque()
 
 def broadcast_message():
     message = "Hello, clients!"
@@ -28,7 +30,7 @@ def test_connect(sid, data):
 @sio.on("disconnect")
 async def test_disconnect(sid):
     print(f"🔥: {sid} user disconnected")
-    sio.leave_room(sid, room)
+    sio.leave_room(sid, users[sid]['room'])
     users.pop(sid)
     await sio.disconnect(sid)
     print(users)
@@ -40,10 +42,10 @@ async def message(sid, data):
     print(data)
     print(f"Message: {data['text']} from {data['name']}")
 
-    if room in messages:
-        messages[room].append(data)
+    if data['room'] in messages:
+        messages[data['room']].append(data)
     else:
-        messages[room] = [data]
+        messages[data['room']] = [data]
 
     print(messages)
 
@@ -56,8 +58,17 @@ async def getMessages(sid, data):
     print(f"Message history: {messages.get(data['room'])}")
     await sio.emit("getMessagesResponse", messages.get(data['room']))
 
+def getRoomToJoin():
+    if len(unfilled_rooms):
+        return unfilled_rooms.popleft()
+    else:
+        room = uuid.uuid4().hex
+        unfilled_rooms.append(room)
+        return room
+
 @sio.event
 async def getRoom(sid):
+    room = getRoomToJoin()
     print(f"Adding SID {sid} to room {room}")
     sio.enter_room(sid, room)
     users[sid]["room"] = room
@@ -68,14 +79,15 @@ async def getRoom(sid):
 @sio.event
 async def leaveRoom(sid, data):
     print(f"Removing SID {sid} from room {data['room']}")
-    sio.leave_room(sid, room)
+    sio.leave_room(sid, data['room'])
+    
     users[sid]["room"] = None
     await sio.emit("leaveRoomResponse", { "room": data['room'] })
 
 
 async def connected_users():
     users_in_rooms = sum(1 for _, user_data in users.items() if user_data.get('room') is not None)
-    await sio.emit("connectedUsers", users_in_rooms)
+    await sio.emit("connectedUsers", { "users": len(users), "usersInRooms": users_in_rooms })
 
 async def connected_users_timer(interval_seconds):
     while True:
