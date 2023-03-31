@@ -15,22 +15,23 @@ users = {}
 messages = {}
 unfilled_rooms = deque()
 
+
 def broadcast_message():
     message = "Hello, clients!"
-    socketio.emit('broadcast_message', message, broadcast=True)
+    socketio.emit("broadcast_message", message, broadcast=True)
 
 
 @sio.on("connect")
 def test_connect(sid, data):
     print(f"⚡: {sid} user just connected!")
-    users[sid] = { "room": None }
+    users[sid] = {"room": None}
     print(users)
 
 
 @sio.on("disconnect")
 async def test_disconnect(sid):
     print(f"🔥: {sid} user disconnected")
-    sio.leave_room(sid, users[sid]['room'])
+    sio.leave_room(sid, users[sid]["room"])
     users.pop(sid)
     await sio.disconnect(sid)
     print(users)
@@ -42,21 +43,23 @@ async def message(sid, data):
     print(data)
     print(f"Message: {data['text']} from {data['name']}")
 
-    if data['room'] in messages:
-        messages[data['room']].append(data)
+    if data.get("room") in messages:
+        messages[data["room"]].append(data)
     else:
-        messages[data['room']] = [data]
+        messages[data["room"]] = [data]
 
     print(messages)
 
     await sio.emit("messageResponse", data)
+
 
 @sio.event
 async def getMessages(sid, data):
     print(f"SID {sid} catching up on messages for room {data['room']}")
 
     print(f"Message history: {messages.get(data['room'])}")
-    await sio.emit("getMessagesResponse", messages.get(data['room']))
+    await sio.emit("getMessagesResponse", messages.get(data["room"]))
+
 
 def getRoomToJoin():
     if len(unfilled_rooms):
@@ -66,6 +69,7 @@ def getRoomToJoin():
         unfilled_rooms.append(room)
         return room
 
+
 @sio.event
 async def getRoom(sid):
     room = getRoomToJoin()
@@ -73,31 +77,33 @@ async def getRoom(sid):
     sio.enter_room(sid, room)
     users[sid]["room"] = room
 
-    await sio.emit("getRoomResponse", { "room": room })
-    
+    await sio.emit("getRoomResponse", {"room": room})
+
 
 @sio.event
 async def leaveRoom(sid, data):
     print(f"Removing SID {sid} from room {data['room']}")
-    sio.leave_room(sid, data['room'])
+    sio.leave_room(sid, data["room"])
 
-    num_in_room = sum(1 for _, user_data in users.items() if user_data.get('room') is data['room'])
+    num_in_room = sum(1 for _, user_data in users.items() if user_data.get("room") is data["room"])
     print(f"Num left in room: {num_in_room}")
     if num_in_room > 0:
-        unfilled_rooms.append(data['room'])
+        unfilled_rooms.append(data["room"])
 
     users[sid]["room"] = None
-    await sio.emit("leaveRoomResponse", { "room": data['room'] }, to=sid)
+    await sio.emit("leaveRoomResponse", {"room": data["room"]}, to=sid)
 
 
 async def connected_users():
-    users_in_rooms = sum(1 for _, user_data in users.items() if user_data.get('room') is not None)
-    await sio.emit("connectedUsers", { "users": len(users), "usersInRooms": users_in_rooms })
+    users_in_rooms = sum(1 for _, user_data in users.items() if user_data.get("room") is not None)
+    await sio.emit("connectedUsers", {"users": len(users), "usersInRooms": users_in_rooms})
+
 
 async def connected_users_timer(interval_seconds):
     while True:
         await connected_users()
         await asyncio.sleep(interval_seconds)
+
 
 def start_connected_users_timer():
     loop = asyncio.new_event_loop()
