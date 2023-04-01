@@ -12,6 +12,13 @@ python-socketio = "^5.8.0"
 uvicorn = {extras = ["standard"], version = "^0.21.1"}
 
 
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
