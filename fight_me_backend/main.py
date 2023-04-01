@@ -108,6 +108,7 @@ async def connected_users_timer(interval_seconds):
 def start_connected_users_timer():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+
     try:
         loop.create_task(connected_users_timer(2))
         loop.run_forever()
@@ -119,6 +120,7 @@ def start_connected_users_timer():
 
 thread = Thread(target=start_connected_users_timer, daemon=True)
 thread.start()
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5000)
