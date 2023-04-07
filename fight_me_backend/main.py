@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import random
 import uvicorn
 import socketio
 import asyncio
@@ -77,7 +78,10 @@ async def getRoom(sid):
     sio.enter_room(sid, room)
     users[sid]["room"] = room
 
-    await sio.emit("getRoomResponse", {"room": room})
+    topic = "Lorem Ipsum"
+    side = bool(random.getrandbits(1))
+
+    await sio.emit("getRoomResponse", {"room": room, "topic": topic, "side": side})
 
 
 @sio.event
