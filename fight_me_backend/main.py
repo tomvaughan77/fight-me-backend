@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import random
+import time
 import uvicorn
 import socketio
 import asyncio
@@ -42,7 +43,10 @@ async def test_disconnect(sid):
 async def message(sid, data):
     print(f"SID: {sid}")
     print(data)
-    print(f"Message: {data['text']} from {data['name']}")
+
+    data["timestamp"] = time.strftime("%Y-%m-%d %H:%M", time.localtime(time.time()))
+
+    print(f"Message: {data['text']} from {data['name']} at {data['timestamp']}")
 
     if data.get("room") in messages:
         messages[data["room"]].append(data)
