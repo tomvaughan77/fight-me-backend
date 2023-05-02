@@ -14,7 +14,7 @@ uvicorn = {extras = ["standard"], version = "^0.21.1"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-pre-commit = "^3.2.2"
+pre-commit = "^3.3.0"
 
 [tool.black]
 line-length = 120
