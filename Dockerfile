@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Add Poetry configuration variables
 ENV POETRY_HOME="/opt/poetry" \
-    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    POETRY_VIRTUALENVS_IN_PROJECT=false \
     POETRY_NO_INTERACTION=1 \
     PYSETUP_PATH="/app"
 
@@ -25,7 +25,7 @@ WORKDIR $PYSETUP_PATH
 COPY ./pyproject.toml ./poetry.lock ./
 
 # Project initialization:
-RUN poetry install --no-dev --no-root
+RUN poetry install --only main
 
 # Copy all files
 COPY . .
