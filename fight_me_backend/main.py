@@ -6,16 +6,32 @@ import socketio
 import asyncio
 import uuid
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from threading import Thread
 from collections import deque
 
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
-app = socketio.ASGIApp(sio)
+sio_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
 
 users = {}
 messages = {}
 unfilled_rooms = deque()
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 
 def broadcast_message():
@@ -131,4 +147,4 @@ thread.start()
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=5000)
+    uvicorn.run(sio_app, host="127.0.0.1", port=5000)
