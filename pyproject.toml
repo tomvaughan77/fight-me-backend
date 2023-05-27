@@ -9,7 +9,7 @@ packages = [{include = "fight_me_backend"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 python-socketio = "^5.8.0"
-uvicorn = {extras = ["standard"], version = "^0.21.1"}
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
 
 
 [tool.poetry.group.dev.dependencies]
