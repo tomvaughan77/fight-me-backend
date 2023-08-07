@@ -10,7 +10,7 @@ packages = []
 python = "^3.11"
 python-socketio = "^5.8.0"
 uvicorn = {extras = ["standard"], version = "^0.22.0"}
-fastapi = "^0.95.2"
+fastapi = "^0.101.0"
 
 
 [tool.poetry.group.dev.dependencies]
